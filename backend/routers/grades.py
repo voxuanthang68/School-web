@@ -260,6 +260,7 @@ async def get_my_grades(
 
         if grade:
             g = serialize(grade)
+            entry["grade_id"] = g.get("id")
             entry["scores"] = g.get("scores", {})
             entry["final_score_10"] = g.get("final_score_10")
             entry["final_score_4"] = g.get("final_score_4")

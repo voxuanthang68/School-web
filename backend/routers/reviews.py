@@ -51,6 +51,8 @@ async def create_review(data: dict, current_user: dict = Depends(require_role(["
         "grade_id": data["grade_id"],
         "class_id": grade["class_id"],
         "reason": data.get("reason", ""),
+        "old_score": str(grade.get("final_score_10", "")),
+        "new_score": "",
         "status": "pending",  # pending / processing / resolved
         "result": "",
         "created_at": datetime.utcnow(),
@@ -91,25 +93,6 @@ async def get_reviews(current_user: dict = Depends(get_current_active_user)):
     return reviews
 
 
-@router.put("/{review_id}")
-async def update_review(review_id: str, data: dict,
-                         current_user: dict = Depends(require_role(["admin", "teacher"]))):
-    """Admin/teacher processes a review."""
-    doc = reviews_collection.find_one({"_id": ObjectId(review_id)})
-    if not doc:
-        raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu phúc khảo")
-
-    update_fields = {}
-    for field in ["status", "result"]:
-        if field in data:
-            update_fields[field] = data[field]
-    update_fields["updated_at"] = datetime.utcnow()
-
-    reviews_collection.update_one({"_id": ObjectId(review_id)}, {"$set": update_fields})
-    updated = reviews_collection.find_one({"_id": ObjectId(review_id)})
-    return serialize(updated)
-
-
 # ─── Review Config ───
 @router.get("/config")
 async def get_review_config(current_user: dict = Depends(get_current_active_user)):
@@ -131,3 +114,32 @@ async def update_review_config(data: dict, current_user: dict = Depends(require_
         result = review_config_collection.insert_one(data)
         updated = review_config_collection.find_one({"_id": result.inserted_id})
     return serialize(updated)
+
+
+@router.put("/{review_id}")
+async def update_review(review_id: str, data: dict,
+                         current_user: dict = Depends(require_role(["admin", "teacher"]))):
+    """Admin/teacher processes a review."""
+    doc = reviews_collection.find_one({"_id": ObjectId(review_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu phúc khảo")
+
+    update_fields = {}
+    for field in ["status", "result"]:
+        if field in data:
+            update_fields[field] = data[field]
+            
+    # Auto-populate new_score when resolved
+    if update_fields.get("status") in ["resolved", "rejected"]:
+        grade = grades_collection.find_one({"_id": ObjectId(doc["grade_id"])})
+        if grade:
+            update_fields["new_score"] = str(grade.get("final_score_10", ""))
+            
+    update_fields["updated_at"] = datetime.utcnow()
+
+    reviews_collection.update_one({"_id": ObjectId(review_id)}, {"$set": update_fields})
+    updated = reviews_collection.find_one({"_id": ObjectId(review_id)})
+    return serialize(updated)
+
+
+

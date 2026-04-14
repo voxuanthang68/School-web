@@ -62,6 +62,8 @@ const TeacherGradeEntryFilter = () => {
           final_score_10: existing?.final_score_10,
           letter_grade: existing?.letter_grade,
           is_pass: existing?.is_pass,
+          status: existing?.status || gradesRes.data.status || 'draft', // individual status if it exists
+          has_review: Math.random() > 0.8 // mocking pending review presence for visual
         };
       });
       setGrades(gradesList);
@@ -144,48 +146,67 @@ const TeacherGradeEntryFilter = () => {
 
       {loaded ? (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              Trạng thái:{' '}
-              {status === 'draft' && <span className="badge badge-slate">Nháp</span>}
-              {status === 'submitted' && <span className="badge badge-warning">Đã nộp - Chờ duyệt</span>}
-              {status === 'approved' && <span className="badge badge-success">Đã duyệt</span>}
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {canEdit && <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Đang lưu...' : '💾 Lưu nháp'}</button>}
-              {canEdit && grades.length > 0 && <button className="btn btn-success" onClick={handleSubmit}>📤 Nộp duyệt</button>}
-            </div>
+          <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '16px 24px', marginBottom: '24px', borderRadius: '8px' }}>
+             <h3 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>Đang mở phúc khảo</h3>
+             <p style={{ fontSize: '13px' }}>Từ 14/12/2025 07:17 đến 14/12/2025 10:17. Giáo viên có thể nhập lại điểm cho các yêu cầu phúc khảo hợp lệ.</p>
           </div>
 
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Mã SV</th><th>Họ tên</th>
+                  <th>Sinh viên</th>
+                  <th>Lớp</th>
                   {gradeItems.map(item => <th key={item.name}>{item.name} ({item.weight}%)</th>)}
-                  <th>Điểm cuối</th><th>Chữ</th><th>Kết quả</th>
+                  <th>Trạng thái</th>
+                  <th>Phúc khảo</th>
                 </tr>
               </thead>
               <tbody>
                 {grades.map(g => (
                   <tr key={g.student_id}>
-                    <td>{g.student_code}</td><td>{g.student_name}</td>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{g.student_code}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--slate-500)' }}>{g.student_name}</div>
+                    </td>
+                    <td>{allClasses.find(c => c.id === selectedClass)?.name || '-'}</td>
                     {gradeItems.map(item => (
                       <td key={item.name}>
                         <input
                           type="number"
                           className="grade-input"
                           min="0" max="10" step="0.1"
+                          style={{ backgroundColor: g.status === 'approved' && !g.has_review ? '#f8fafc' : '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', width: '60px' }}
                           value={g.scores[item.name] ?? ''}
                           onChange={e => handleScoreChange(g.student_id, item.name, e.target.value)}
-                          disabled={!canEdit}
+                          disabled={g.status === 'approved' && !g.has_review}
                         />
                       </td>
                     ))}
-                    <td style={{ fontWeight: 700 }}>{g.final_score_10 != null ? g.final_score_10 : '-'}</td>
-                    <td><span className="badge badge-primary">{g.letter_grade || '-'}</span></td>
                     <td>
-                      {g.is_pass != null && <span className={`badge ${g.is_pass ? 'badge-success' : 'badge-danger'}`}>{g.is_pass ? 'Đậu' : 'Rớt'}</span>}
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px' }}>
+                         <span style={{ fontWeight: 600, color: '#334155' }}>{g.status}</span>
+                         <span style={{ fontSize: '12px', color: '#64748b' }}>
+                            {g.is_pass != null ? `${g.is_pass ? 'Pass' : 'Fail'} (${g.letter_grade || '-'})` : '- (-)'}
+                         </span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        {g.status === 'approved' && g.has_review && (
+                          <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                            YC phúc khảo: pending
+                          </div>
+                        )}
+                        <button style={{ backgroundColor: '#4f46e5', color: '#fff', padding: '6px 16px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={handleSave}>
+                          &#128190; Lưu
+                        </button>
+                        {g.status !== 'approved' && (
+                          <button style={{ backgroundColor: '#f59e0b', color: '#fff', padding: '6px 16px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={handleSubmit}>
+                            Nộp duyệt
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -11,6 +11,7 @@ const GradeApproval = () => {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [gradeData, setGradeData] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,10 +49,14 @@ const GradeApproval = () => {
   };
 
   const handleApprove = async (classId) => {
-    if (!confirm('Xác nhận duyệt bảng điểm?')) return;
-    await api.post(`/grades/class/${classId}/approve`);
-    handleLoadGrades();
-    api.get('/grades/all-for-approval').then(r => setAllClasses(r.data));
+    try {
+      await api.post(`/grades/class/${classId}/approve`);
+      handleLoadGrades();
+      api.get('/grades/all-for-approval').then(r => setAllClasses(r.data));
+      setShowSuccessModal(true);
+    } catch (err) {
+      alert('Lỗi khi duyệt: ' + (err.response?.data?.detail || err.message));
+    }
   };
 
   const handleReject = async (classId) => {
@@ -174,6 +179,23 @@ const GradeApproval = () => {
           </table>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '24px', width: '400px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}>
+            <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold' }}>Đã duyệt</h2>
+            <p style={{ marginBottom: '32px', color: '#4b5563', fontSize: '14px' }}>Đã duyệt bản điểm</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setShowSuccessModal(false)}
+                style={{ backgroundColor: '#059669', color: '#fff', padding: '8px 24px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
