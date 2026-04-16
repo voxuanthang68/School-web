@@ -112,7 +112,7 @@ const TeacherReviews = () => {
                         color: r.status === 'resolved' || r.status === 'rejected' ? '#fff' : r.status === 'pending' ? '#4b5563' : '#1d4ed8'
                       }}
                     >
-                      {r.status}
+                      {r.status === 'pending' ? 'Chờ xử lý' : r.status === 'processing' ? 'Đang xử lý' : r.status === 'resolved' ? 'Đã giải quyết' : r.status === 'rejected' ? 'Từ chối' : r.status}
                     </span>
                   </td>
                   <td>{r.result || '-'}</td>
@@ -157,10 +157,10 @@ const TeacherReviews = () => {
 
             <div className="form-group" style={{ marginBottom: '32px' }}>
               <select className="form-control" style={{ width: '100%' }} value={updateStatus} onChange={e => setUpdateStatus(e.target.value)}>
-                <option value="pending">pending</option>
-                <option value="processing">processing</option>
-                <option value="resolved">resolved</option>
-                <option value="rejected">rejected</option>
+                <option value="pending">Chờ xử lý</option>
+                <option value="processing">Đang xử lý</option>
+                <option value="resolved">Đã giải quyết</option>
+                <option value="rejected">Từ chối</option>
               </select>
             </div>
 

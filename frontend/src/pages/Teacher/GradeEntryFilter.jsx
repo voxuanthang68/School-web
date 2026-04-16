@@ -185,7 +185,7 @@ const TeacherGradeEntryFilter = () => {
                     ))}
                     <td>
                       <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px' }}>
-                         <span style={{ fontWeight: 600, color: '#334155' }}>{g.status}</span>
+                         <span style={{ fontWeight: 600, color: '#334155' }}>{g.status === 'approved' ? 'Đã duyệt' : g.status === 'submitted' ? 'Đã nộp' : g.status === 'draft' ? 'Nháp' : g.status === 'N/A' ? 'N/A' : (g.status || '-')}</span>
                          <span style={{ fontSize: '12px', color: '#64748b' }}>
                             {g.is_pass != null ? `${g.is_pass ? 'Pass' : 'Fail'} (${g.letter_grade || '-'})` : '- (-)'}
                          </span>
@@ -195,7 +195,7 @@ const TeacherGradeEntryFilter = () => {
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
                         {g.status === 'approved' && g.has_review && (
                           <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                            YC phúc khảo: pending
+                            YC phúc khảo: Chờ xử lý
                           </div>
                         )}
                         <button style={{ backgroundColor: '#4f46e5', color: '#fff', padding: '6px 16px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={handleSave}>

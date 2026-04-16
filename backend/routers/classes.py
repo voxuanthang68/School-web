@@ -209,17 +209,30 @@ async def request_enrollment(class_id: str, current_user: dict = Depends(require
         raise HTTPException(status_code=400, detail="Lớp đã đóng đăng ký")
 
     # Check if already requested or approved
-    for req in doc.get("student_requests", []):
+    requests = doc.get("student_requests", [])
+    already_requested = False
+    for req in requests:
         if req["student_id"] == current_user["id"]:
-            raise HTTPException(status_code=400, detail="Bạn đã gửi yêu cầu đăng ký")
+            if req.get("status") == "pending":
+                raise HTTPException(status_code=400, detail="Bạn đã gửi yêu cầu đăng ký")
+            elif req.get("status") == "rejected":
+                req["status"] = "pending"
+                already_requested = True
+                break
 
     if current_user["id"] in doc.get("approved_students", []):
         raise HTTPException(status_code=400, detail="Bạn đã được duyệt vào lớp")
 
-    classes_collection.update_one(
-        {"_id": ObjectId(class_id)},
-        {"$push": {"student_requests": {"student_id": current_user["id"], "status": "pending"}}}
-    )
+    if already_requested:
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$set": {"student_requests": requests}}
+        )
+    else:
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$push": {"student_requests": {"student_id": current_user["id"], "status": "pending"}}}
+        )
     return {"message": "Đã gửi yêu cầu đăng ký lớp"}
 
 
@@ -325,6 +338,28 @@ async def add_student_manual(class_id: str, data: dict,
         })
 
     return {"message": "Đã thêm sinh viên vào lớp"}
+
+
+@router.delete("/{class_id}/remove-student/{student_id}")
+async def remove_student(class_id: str, student_id: str,
+                          current_user: dict = Depends(require_role(["admin", "teacher"]))):
+    doc = classes_collection.find_one({"_id": ObjectId(class_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+
+    if current_user["role"] == "teacher" and doc.get("teacher_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Bạn không phải giáo viên của lớp này")
+
+    approved = doc.get("approved_students", [])
+    if student_id in approved:
+        approved.remove(student_id)
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$set": {"approved_students": approved}}
+        )
+
+    # Note: we are not deleting the enrollment automatically here in case they enroll elsewhere
+    return {"message": "Đã xóa sinh viên khỏi lớp"}
 
 
 @router.delete("/{class_id}")

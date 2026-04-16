@@ -106,11 +106,11 @@ const StudentGrades = () => {
                     <td>{g.final_score_4 != null ? parseFloat(g.final_score_4).toFixed(2) : '-'}</td>
                     <td>{g.letter_grade || '-'}</td>
                     <td>{g.is_pass != null ? (g.is_pass ? 'Pass' : 'Fail') : '-'}</td>
-                    <td>{g.status || '-'}</td>
+                    <td>{g.status === 'approved' ? 'Đã duyệt' : g.status === 'submitted' ? 'Đã nộp' : g.status === 'draft' ? 'Nháp' : g.status === 'N/A' ? 'N/A' : (g.status || '-')}</td>
                     <td style={{ fontSize: '13px', width: '220px' }}>
                       {review ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                          <div style={{ color: '#64748b' }}>Trạng thái: <span style={{ color: '#475569', fontWeight: 500 }}>{review.status}</span></div>
+                          <div style={{ color: '#64748b' }}>Trạng thái: <span style={{ color: '#475569', fontWeight: 500 }}>{review.status === 'pending' ? 'Chờ xử lý' : review.status === 'processing' ? 'Đang xử lý' : review.status === 'resolved' ? 'Đã giải quyết' : review.status === 'rejected' ? 'Từ chối' : review.status}</span></div>
                           <div style={{ display: 'inline-block', padding: '2px 6px', border: '1px solid #bae6fd', backgroundColor: '#e0f2fe', borderRadius: '4px', color: '#0369a1', fontSize: '11px' }}>
                             Phúc khảo từ 14/12 đến 14/12
                           </div>
@@ -175,7 +175,7 @@ const StudentGrades = () => {
                           color: r.status === 'resolved' || r.status === 'rejected' ? '#fff' : r.status === 'pending' ? '#4b5563' : '#1d4ed8'
                         }}
                       >
-                        {r.status}
+                        {r.status === 'pending' ? 'Chờ xử lý' : r.status === 'processing' ? 'Đang xử lý' : r.status === 'resolved' ? 'Đã giải quyết' : r.status === 'rejected' ? 'Từ chối' : r.status}
                       </span>
                     </td>
                     <td style={{ padding: '16px', fontSize: '13px' }}>{r.result || '-'}</td>

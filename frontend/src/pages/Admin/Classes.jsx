@@ -75,11 +75,11 @@ const Classes = () => {
 
   const handleRemoveStudent = async (studentId) => {
     if (!confirm('Xóa sinh viên khỏi lớp?')) return;
-    // Remove from approved_students
-    const updated = (classDetail.approved_students || []).filter(id => id !== studentId);
-    await api.put(`/classes/${selectedClass}`, { approved_students: updated });
-    fetchClassDetail(selectedClass);
-    fetchData();
+    try {
+      await api.delete(`/classes/${selectedClass}/remove-student/${studentId}`);
+      fetchClassDetail(selectedClass);
+      fetchData();
+    } catch (err) { alert(err.response?.data?.detail || 'Lỗi'); }
   };
 
   const handleToggleStatus = async (cls) => {
@@ -135,7 +135,7 @@ const Classes = () => {
                   <span className="badge badge-warning" style={{ marginRight: 4 }}>Chờ: {getPendingCount(c)}</span>
                   <span className="badge badge-info">Duyệt: {getApprovedCount(c)}</span>
                 </td>
-                <td><span className={`badge ${c.status === 'open' ? 'badge-success' : 'badge-danger'}`}>{c.status}</span></td>
+                <td><span className={`badge ${c.status === 'open' ? 'badge-success' : 'badge-danger'}`}>{c.status === 'open' ? 'Mở' : 'Đóng'}</span></td>
                 <td style={{ textAlign: 'right' }}>
                   <button className="btn btn-sm btn-outline" onClick={() => fetchClassDetail(c.id)}>Quản lý</button>
                 </td>
@@ -165,8 +165,8 @@ const Classes = () => {
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <select className="form-control" style={{ width: '100px' }} value={classDetail.status} onChange={e => setClassDetail({...classDetail, status: e.target.value})}>
-                <option value="open">open</option>
-                <option value="closed">closed</option>
+                <option value="open">Mở</option>
+                <option value="closed">Đóng</option>
               </select>
               <button className="btn btn-primary btn-sm" onClick={handleSaveClassInfo}>💾 Lưu thông tin lớp</button>
             </div>

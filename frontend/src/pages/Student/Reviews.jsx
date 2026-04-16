@@ -49,7 +49,7 @@ const StudentReviews = () => {
                         color: r.status === 'resolved' || r.status === 'rejected' ? '#fff' : r.status === 'pending' ? '#4b5563' : '#1d4ed8'
                       }}
                     >
-                      {r.status}
+                      {r.status === 'pending' ? 'Chờ xử lý' : r.status === 'processing' ? 'Đang xử lý' : r.status === 'resolved' ? 'Đã giải quyết' : r.status === 'rejected' ? 'Từ chối' : r.status}
                     </span>
                   </td>
                   <td>{r.result || '-'}</td>

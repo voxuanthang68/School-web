@@ -89,7 +89,7 @@ const ClassRegister = () => {
                         <span style={{ color: 'var(--success)' }}>Duyệt: {c.approved_count || 0}</span>
                       </span>
                     </td>
-                    <td><span className="badge badge-primary" style={{ backgroundColor: c.status === 'open' ? '#4f46e5' : '#ef4444' }}>{c.status}</span></td>
+                    <td><span className="badge badge-primary" style={{ backgroundColor: c.status === 'open' ? '#4f46e5' : '#ef4444', color: '#fff' }}>{c.status === 'open' ? 'Mở' : 'Đóng'}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       {c.enrollment_status === 'approved' ? (
                         <span style={{ border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', padding: '4px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 500 }}>
@@ -99,6 +99,10 @@ const ClassRegister = () => {
                         <span style={{ border: '1px solid #d1d5db', backgroundColor: '#f3f4f6', color: '#374151', padding: '4px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 500 }}>
                           Chờ duyệt
                         </span>
+                      ) : c.enrollment_status === 'rejected' ? (
+                        <button className="btn btn-sm btn-outline btn-danger" onClick={() => handleRequest(c.id)} style={{ padding: '4px 12px', fontSize: '12px', borderColor: '#ef4444', color: '#ef4444' }}>
+                          Bị từ chối - Đăng ký lại
+                        </button>
                       ) : (
                         <button className="btn btn-sm btn-primary" onClick={() => handleRequest(c.id)} style={{ padding: '4px 12px', fontSize: '12px' }}>
                           Đăng ký
