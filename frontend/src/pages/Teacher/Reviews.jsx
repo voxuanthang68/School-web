@@ -11,12 +11,14 @@ const TeacherReviews = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [updateStatus, setUpdateStatus] = useState('');
+  const [reviewConfig, setReviewConfig] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => { 
     api.get('/reviews/').then(r => setReviews(r.data)); 
     api.get('/subjects/').then(r => setSubjects(r.data));
     api.get('/semesters/').then(r => setSemesters(r.data));
+    api.get('/reviews/config').then(r => setReviewConfig(r.data)).catch(console.error);
   }, []);
 
   const handleOpenUpdate = (r) => {
@@ -75,7 +77,14 @@ const TeacherReviews = () => {
       <div className="card">
         <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
           <div style={{ fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>Tổng {reviews.length} yêu cầu</div>
-          <div style={{ fontSize: '13px', color: 'var(--slate-500)' }}>Đợt phúc khảo đang mở: 14/12/2025 07:17 - 14/12/2025 10:17</div>
+          <div style={{ fontSize: '13px', color: 'var(--slate-500)' }}>
+            {(() => {
+              const activePeriod = reviewConfig?.periods?.find(p => p.status === 'open');
+              return activePeriod
+                ? `Đợt phúc khảo đang mở: ${activePeriod.start_date} - ${activePeriod.end_date}`
+                : 'Không có đợt phúc khảo đang mở';
+            })()}
+          </div>
         </div>
         
         <div className="table-container" style={{ border: 'none', boxShadow: 'none' }}>

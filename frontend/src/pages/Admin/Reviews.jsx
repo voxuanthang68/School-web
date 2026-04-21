@@ -30,6 +30,10 @@ const Reviews = () => {
       const subj = subjects.find(s => s.id === selectedSubject);
       if (subj && r.subject_name !== subj.name) return false;
     }
+    if (selectedSemester) {
+      const sem = semesters.find(s => s.id === selectedSemester);
+      if (sem && r.semester_name !== sem.name) return false;
+    }
     return true;
   });
 
@@ -87,7 +91,7 @@ const Reviews = () => {
                 <td>{r.student_code} - {r.student_name}</td>
                 <td>{r.class_name}</td>
                 <td style={{ maxWidth: '200px' }}>{r.reason}</td>
-                <td>-</td>
+                <td>{r.old_score || '-'} → {r.new_score || '-'}</td>
                 <td>{statusBadge(r.status)}</td>
                 <td>{r.result || '-'}</td>
                 <td style={{ textAlign: 'right' }}>

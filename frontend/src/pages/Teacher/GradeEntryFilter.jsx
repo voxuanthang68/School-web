@@ -14,11 +14,13 @@ const TeacherGradeEntryFilter = () => {
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [reviewConfig, setReviewConfig] = useState(null);
 
   useEffect(() => {
     api.get('/subjects/').then(r => setSubjects(r.data));
     api.get('/semesters/').then(r => setSemesters(r.data));
     api.get('/classes/').then(r => setAllClasses(r.data));
+    api.get('/reviews/config').then(r => setReviewConfig(r.data)).catch(console.error);
   }, []);
 
   // Filter classes by selected subject/semester
@@ -62,8 +64,7 @@ const TeacherGradeEntryFilter = () => {
           final_score_10: existing?.final_score_10,
           letter_grade: existing?.letter_grade,
           is_pass: existing?.is_pass,
-          status: existing?.status || gradesRes.data.status || 'draft', // individual status if it exists
-          has_review: Math.random() > 0.8 // mocking pending review presence for visual
+          status: existing?.status || gradesRes.data.status || 'draft',
         };
       });
       setGrades(gradesList);
@@ -107,6 +108,9 @@ const TeacherGradeEntryFilter = () => {
 
   const canEdit = status === 'draft';
 
+  // Find active review period
+  const activePeriod = reviewConfig?.periods?.find(p => p.status === 'open');
+
   return (
     <div>
       <div className="page-header">
@@ -146,10 +150,12 @@ const TeacherGradeEntryFilter = () => {
 
       {loaded ? (
         <>
-          <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '16px 24px', marginBottom: '24px', borderRadius: '8px' }}>
-             <h3 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>Đang mở phúc khảo</h3>
-             <p style={{ fontSize: '13px' }}>Từ 14/12/2025 07:17 đến 14/12/2025 10:17. Giáo viên có thể nhập lại điểm cho các yêu cầu phúc khảo hợp lệ.</p>
-          </div>
+          {activePeriod ? (
+            <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '16px 24px', marginBottom: '24px', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>Đang mở phúc khảo</h3>
+              <p style={{ fontSize: '13px' }}>Từ {activePeriod.start_date} đến {activePeriod.end_date}. Giáo viên có thể nhập lại điểm cho các yêu cầu phúc khảo hợp lệ.</p>
+            </div>
+          ) : null}
 
           <div className="table-container">
             <table>
@@ -176,10 +182,10 @@ const TeacherGradeEntryFilter = () => {
                           type="number"
                           className="grade-input"
                           min="0" max="10" step="0.1"
-                          style={{ backgroundColor: g.status === 'approved' && !g.has_review ? '#f8fafc' : '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', width: '60px' }}
+                          style={{ backgroundColor: !canEdit ? '#f8fafc' : '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', width: '60px' }}
                           value={g.scores[item.name] ?? ''}
                           onChange={e => handleScoreChange(g.student_id, item.name, e.target.value)}
-                          disabled={g.status === 'approved' && !g.has_review}
+                          disabled={!canEdit}
                         />
                       </td>
                     ))}
@@ -192,30 +198,19 @@ const TeacherGradeEntryFilter = () => {
                       </div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
-                        {g.status === 'approved' && g.has_review && (
-                          <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                            YC phúc khảo: Chờ xử lý
-                          </div>
-                        )}
-                        <button style={{ backgroundColor: '#4f46e5', color: '#fff', padding: '6px 16px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={handleSave}>
-                          &#128190; Lưu
-                        </button>
-                        {g.status !== 'approved' && (
-                          <button style={{ backgroundColor: '#f59e0b', color: '#fff', padding: '6px 16px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }} onClick={handleSubmit}>
-                            Nộp duyệt
-                          </button>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}
                 {grades.length === 0 && (
                   <tr><td colSpan={3 + gradeItems.length} style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '32px' }}>Không có sinh viên trong lớp này hoặc chưa có cấu hình điểm cho môn học này.</td></tr>
                 )}
-              </tbody>
-            </table>
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', padding: '16px' }}>
+            {canEdit && <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Đang lưu...' : '💾 Lưu nháp'}</button>}
+            {canEdit && grades.length > 0 && <button className="btn btn-success" onClick={handleSubmit}>📤 Nộp duyệt</button>}
           </div>
+        </div>
         </>
       ) : (
         <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--slate-400)' }}>

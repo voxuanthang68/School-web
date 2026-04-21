@@ -186,7 +186,7 @@ const GradeApproval = () => {
             <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold' }}>Đã duyệt</h2>
             <p style={{ marginBottom: '32px', color: '#4b5563', fontSize: '14px' }}>Đã duyệt bản điểm</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
+              <button
                 onClick={() => setShowSuccessModal(false)}
                 style={{ backgroundColor: '#059669', color: '#fff', padding: '8px 24px', borderRadius: '4px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
               >

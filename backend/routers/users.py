@@ -3,7 +3,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing import List, Optional
 from bson import ObjectId
 from datetime import timedelta
-import jwt
 
 from database import users_collection
 from auth import (

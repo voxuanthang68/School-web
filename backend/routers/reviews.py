@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database import (
     reviews_collection, review_config_collection,
@@ -55,8 +55,8 @@ async def create_review(data: dict, current_user: dict = Depends(require_role(["
         "new_score": "",
         "status": "pending",  # pending / processing / resolved
         "result": "",
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
     }
     result = reviews_collection.insert_one(review)
     created = reviews_collection.find_one({"_id": result.inserted_id})
@@ -135,7 +135,7 @@ async def update_review(review_id: str, data: dict,
         if grade:
             update_fields["new_score"] = str(grade.get("final_score_10", ""))
             
-    update_fields["updated_at"] = datetime.utcnow()
+    update_fields["updated_at"] = datetime.now(timezone.utc)
 
     reviews_collection.update_one({"_id": ObjectId(review_id)}, {"$set": update_fields})
     updated = reviews_collection.find_one({"_id": ObjectId(review_id)})

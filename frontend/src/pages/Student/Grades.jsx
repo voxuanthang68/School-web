@@ -10,11 +10,13 @@ const StudentGrades = () => {
   // Review Modal State
   const [showModal, setShowModal] = useState(false);
   const [reviewForm, setReviewForm] = useState({ grade_id: '', subject_name: '', reason: '' });
+  const [reviewConfig, setReviewConfig] = useState(null);
 
   useEffect(() => {
     api.get('/semesters/').then(r => setSemesters(r.data));
     fetchGrades();
     fetchReviews();
+    api.get('/reviews/config').then(r => setReviewConfig(r.data)).catch(console.error);
   }, []);
 
   const fetchReviews = async () => {
@@ -112,14 +114,20 @@ const StudentGrades = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
                           <div style={{ color: '#64748b' }}>Trạng thái: <span style={{ color: '#475569', fontWeight: 500 }}>{review.status === 'pending' ? 'Chờ xử lý' : review.status === 'processing' ? 'Đang xử lý' : review.status === 'resolved' ? 'Đã giải quyết' : review.status === 'rejected' ? 'Từ chối' : review.status}</span></div>
                           <div style={{ display: 'inline-block', padding: '2px 6px', border: '1px solid #bae6fd', backgroundColor: '#e0f2fe', borderRadius: '4px', color: '#0369a1', fontSize: '11px' }}>
-                            Phúc khảo từ 14/12 đến 14/12
+                            {(() => {
+                              const p = reviewConfig?.periods?.find(p => p.status === 'open');
+                              return p ? `Phúc khảo từ ${p.start_date} đến ${p.end_date}` : 'Phúc khảo';
+                            })()}
                           </div>
-                          <div style={{ color: '#64748b' }}>Đang chờ xử lý</div>
+                          {review.result && <div style={{ color: '#64748b', fontSize: '12px' }}>Phản hồi: {review.result}</div>}
                         </div>
                       ) : g.status === 'approved' ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start' }}>
                           <div style={{ padding: '2px 6px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', borderRadius: '4px', color: '#0369a1', fontSize: '11px' }}>
-                            Phúc khảo từ 14/12 đến 14/12
+                            {(() => {
+                              const p = reviewConfig?.periods?.find(p => p.status === 'open');
+                              return p ? `Phúc khảo từ ${p.start_date} đến ${p.end_date}` : 'Phúc khảo';
+                            })()}
                           </div>
                           <button 
                             onClick={() => handleOpenReview(g)}

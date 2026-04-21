@@ -6,6 +6,8 @@ const ClassRegister = () => {
   const { user } = useAuth();
   const [classes, setClasses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [perPage, setPerPage] = useState(10);
+  const [page, setPage] = useState(1);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -28,6 +30,8 @@ const ClassRegister = () => {
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.subject_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const totalPages = Math.ceil(filteredClasses.length / perPage);
+  const paginated = filteredClasses.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div>
@@ -42,10 +46,10 @@ const ClassRegister = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>Hiển thị</span>
-            <select className="form-control" style={{ width: 'auto', display: 'inline-block', padding: '4px 8px', height: '32px' }}>
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
+            <select className="form-control" style={{ width: 'auto', display: 'inline-block', padding: '4px 8px', height: '32px' }} value={perPage} onChange={e => { setPerPage(+e.target.value); setPage(1); }}>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
             </select>
             <span>dòng</span>
           </div>
@@ -56,7 +60,7 @@ const ClassRegister = () => {
               className="form-control" 
               style={{ width: '200px', padding: '4px 8px', height: '32px' }} 
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
             />
           </div>
         </div>
@@ -75,7 +79,7 @@ const ClassRegister = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredClasses.map(c => {
+              {paginated.map(c => {
                 return (
                   <tr key={c.id || c.class_id || c.name}>
                     <td style={{ fontWeight: 600 }}>{c.name}</td>
@@ -120,11 +124,13 @@ const ClassRegister = () => {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '13px', color: 'var(--slate-500)' }}>
-          <div>Showing 1 to {filteredClasses.length} of {filteredClasses.length} entries</div>
+          <div>Showing {filteredClasses.length === 0 ? 0 : (page - 1) * perPage + 1} to {Math.min(page * perPage, filteredClasses.length)} of {filteredClasses.length} entries</div>
           <div style={{ display: 'flex', gap: '4px' }}>
-            <span style={{ padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer' }}>&laquo;</span>
-            <span style={{ padding: '4px 12px', backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '4px', fontWeight: 600 }}>1</span>
-            <span style={{ padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer' }}>&raquo;</span>
+            <span onClick={() => setPage(Math.max(1, page - 1))} style={{ padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer' }}>&laquo;</span>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <span key={p} onClick={() => setPage(p)} style={{ padding: '4px 12px', backgroundColor: p === page ? '#4f46e5' : '#f3f4f6', color: p === page ? '#fff' : 'inherit', border: '1px solid #e5e7eb', borderRadius: '4px', fontWeight: 600, cursor: 'pointer' }}>{p}</span>
+            ))}
+            <span onClick={() => setPage(Math.min(totalPages || 1, page + 1))} style={{ padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer' }}>&raquo;</span>
           </div>
         </div>
       </div>

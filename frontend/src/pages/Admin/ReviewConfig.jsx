@@ -108,7 +108,7 @@ const ReviewConfig = () => {
                 <th></th>
               </tr>
             </thead>
-          <tbody>
+            <tbody>
             {periods.map((p, i) => (
               <tr key={i}>
                 <td style={{ fontWeight: 600 }}>{p.subject_name}</td>

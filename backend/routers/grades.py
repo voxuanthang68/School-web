@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 from database import (
     grades_collection, classes_collection, users_collection,
@@ -117,7 +117,7 @@ async def upsert_class_grades(class_id: str, data: dict,
             "letter_grade": letter_info["letter"],
             "is_pass": is_pass(final_10),
             "status": "draft",
-            "updated_at": datetime.utcnow(),
+            "updated_at": datetime.now(timezone.utc),
         }
 
         result = grades_collection.find_one_and_update(
@@ -148,7 +148,7 @@ async def submit_grades(class_id: str, current_user: dict = Depends(require_role
 
     grades_collection.update_many(
         {"class_id": class_id, "status": "draft"},
-        {"$set": {"status": "submitted", "submitted_at": datetime.utcnow()}}
+        {"$set": {"status": "submitted", "submitted_at": datetime.now(timezone.utc)}}
     )
     return {"message": "Đã nộp bảng điểm chờ duyệt"}
 
@@ -162,7 +162,7 @@ async def approve_grades(class_id: str, current_user: dict = Depends(require_rol
 
     result = grades_collection.update_many(
         {"class_id": class_id, "status": "submitted"},
-        {"$set": {"status": "approved", "approved_at": datetime.utcnow()}}
+        {"$set": {"status": "approved", "approved_at": datetime.now(timezone.utc)}}
     )
     return {"message": f"Đã duyệt bảng điểm ({result.modified_count} mục)"}
 
@@ -203,13 +203,13 @@ async def get_class_grades(class_id: str, current_user: dict = Depends(require_r
         grades.append(g)
 
     # Get status (use first grade status)
-    status = grades[0]["status"] if grades else "draft"
+    grade_status = grades[0]["status"] if grades else "draft"
 
     return {
         "class_id": class_id,
         "grade_items": grade_items,
         "grades": grades,
-        "status": status,
+        "status": grade_status,
         "subject_id": subject_id,
     }
 
