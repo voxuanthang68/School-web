@@ -49,7 +49,7 @@ const Classes = () => {
     } catch (err) { alert(err.response?.data?.detail || 'Lỗi'); }
   };
 
-  const handleDelete = async (id) => { if (!confirm('Xác nhận xóa?')) return; await api.delete(`/classes/${id}`); fetchData(); setSelectedClass(null); setClassDetail(null); };
+  const handleDelete = async (id) => { if (!confirm('Xóa lớp học này?\n\n⚠️ Toàn bộ dữ liệu liên quan (điểm, đăng ký môn, phúc khảo) sẽ bị xóa vĩnh viễn!')) return; await api.delete(`/classes/${id}`); fetchData(); setSelectedClass(null); setClassDetail(null); };
 
   const handleApprove = async (studentId) => {
     await api.put(`/classes/${selectedClass}/approve/${studentId}`);
@@ -137,7 +137,8 @@ const Classes = () => {
                 </td>
                 <td><span className={`badge ${c.status === 'open' ? 'badge-success' : 'badge-danger'}`}>{c.status === 'open' ? 'Mở' : 'Đóng'}</span></td>
                 <td style={{ textAlign: 'right' }}>
-                  <button className="btn btn-sm btn-outline" onClick={() => fetchClassDetail(c.id)}>Quản lý</button>
+                  <button className="btn btn-sm btn-outline mr-2" onClick={() => fetchClassDetail(c.id)}>Quản lý</button>
+                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id)}>🗑 Xóa</button>
                 </td>
               </tr>
             ))}
