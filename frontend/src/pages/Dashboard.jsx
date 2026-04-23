@@ -11,13 +11,117 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [distribution, setDistribution] = useState(null);
 
+  const [studentGrades, setStudentGrades] = useState([]);
+
   useEffect(() => {
     if (user?.role === 'admin') {
       api.get('/reports/dashboard').then(r => setStats(r.data)).catch(console.error);
       api.get('/reports/grade-distribution').then(r => setDistribution(r.data)).catch(console.error);
+    } else if (user?.role === 'student') {
+      api.get('/grades/my').then(r => setStudentGrades(r.data)).catch(console.error);
     }
   }, [user]);
 
+  if (user?.role === 'student') {
+    const needImprovement = studentGrades.filter(g => g.is_pass === false || (g.is_pass === null && g.status === 'draft'));
+
+    return (
+      <div>
+        <div className="page-header">
+          <div>
+            <h1>Kết quả học tập</h1>
+            <p>Xem nhanh tất cả môn học và các môn cần cải thiện</p>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: '24px' }}>
+          <h3 style={{ marginBottom: '16px' }}>
+             <span style={{ fontSize: '18px', fontWeight: '700' }}>Điểm tất cả các môn</span>
+             <br/><span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--slate-500)' }}>Bao gồm học kỳ và trạng thái bảng điểm</span>
+          </h3>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Môn học</th>
+                  <th>Học kỳ</th>
+                  <th>Điểm 10</th>
+                  <th>Điểm 4</th>
+                  <th>Chữ</th>
+                  <th>Pass/Fail</th>
+                  <th>Trạng thái bảng điểm</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentGrades.map((g, i) => (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 600 }}>{g.subject_name || g.subject_code}</td>
+                    <td>{g.semester_name} ({g.semester_year})</td>
+                    <td>{g.final_score_10 != null ? g.final_score_10 : '—'}</td>
+                    <td>{g.final_score_4 != null ? parseFloat(g.final_score_4).toFixed(2) : '—'}</td>
+                    <td>{g.letter_grade || '—'}</td>
+                    <td>
+                      {g.is_pass != null ? (
+                        <span style={{ color: g.is_pass ? 'inherit' : 'var(--danger)', fontWeight: g.is_pass ? 400 : 600 }}>
+                          {g.is_pass ? 'Pass' : 'Chưa có'}
+                        </span>
+                      ) : g.status === 'approved' && g.is_pass ? 'Pass' : g.status === 'draft' ? 'Chưa có' : 'Chưa có'}
+                    </td>
+                    <td>{g.status}</td>
+                  </tr>
+                ))}
+                {studentGrades.length === 0 && (
+                  <tr><td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--slate-400)' }}>Chưa có dữ liệu</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 style={{ marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px', fontWeight: '700' }}>Môn cần cải thiện</span>
+             <br/><span style={{ fontSize: '13px', fontWeight: '400', color: 'var(--slate-500)' }}>Hiển thị các môn chưa đạt hoặc chưa có kết quả</span>
+          </h3>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Môn học</th>
+                  <th>Học kỳ</th>
+                  <th>Điểm 10</th>
+                  <th>Điểm 4</th>
+                  <th>Chữ</th>
+                  <th>Pass/Fail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {needImprovement.map((g, i) => (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 600 }}>{g.subject_name || g.subject_code}</td>
+                    <td>{g.semester_name} ({g.semester_year})</td>
+                    <td>{g.final_score_10 != null ? g.final_score_10 : '—'}</td>
+                    <td>{g.final_score_4 != null ? parseFloat(g.final_score_4).toFixed(2) : '—'}</td>
+                    <td>{g.letter_grade || '—'}</td>
+                    <td>
+                      <span style={{ color: g.is_pass === false ? 'var(--danger)' : 'inherit', fontWeight: g.is_pass === false ? 600 : 400 }}>
+                        {g.is_pass === false ? 'Rớt' : 'Chưa có'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {needImprovement.length === 0 && (
+                   <tr><td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--slate-400)' }}>Không có môn nào cần cải thiện</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Teacher / Admin default dashboard
   if (user?.role === 'admin') {
     const distData = distribution ? Object.entries(distribution).map(([k, v]) => ({ name: k, value: v })).filter(d => d.value > 0) : [];
 

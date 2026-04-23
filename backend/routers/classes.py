@@ -3,7 +3,8 @@ from bson import ObjectId
 
 from database import (
     classes_collection, subjects_collection, users_collection,
-    semesters_collection, enrollments_collection
+    semesters_collection, enrollments_collection, grades_collection,
+    reviews_collection
 )
 from auth import require_role, get_current_active_user
 
@@ -209,17 +210,30 @@ async def request_enrollment(class_id: str, current_user: dict = Depends(require
         raise HTTPException(status_code=400, detail="Lớp đã đóng đăng ký")
 
     # Check if already requested or approved
-    for req in doc.get("student_requests", []):
+    requests = doc.get("student_requests", [])
+    already_requested = False
+    for req in requests:
         if req["student_id"] == current_user["id"]:
-            raise HTTPException(status_code=400, detail="Bạn đã gửi yêu cầu đăng ký")
+            if req.get("status") == "pending":
+                raise HTTPException(status_code=400, detail="Bạn đã gửi yêu cầu đăng ký")
+            elif req.get("status") == "rejected":
+                req["status"] = "pending"
+                already_requested = True
+                break
 
     if current_user["id"] in doc.get("approved_students", []):
         raise HTTPException(status_code=400, detail="Bạn đã được duyệt vào lớp")
 
-    classes_collection.update_one(
-        {"_id": ObjectId(class_id)},
-        {"$push": {"student_requests": {"student_id": current_user["id"], "status": "pending"}}}
-    )
+    if already_requested:
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$set": {"student_requests": requests}}
+        )
+    else:
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$push": {"student_requests": {"student_id": current_user["id"], "status": "pending"}}}
+        )
     return {"message": "Đã gửi yêu cầu đăng ký lớp"}
 
 
@@ -327,9 +341,50 @@ async def add_student_manual(class_id: str, data: dict,
     return {"message": "Đã thêm sinh viên vào lớp"}
 
 
+@router.delete("/{class_id}/remove-student/{student_id}")
+async def remove_student(class_id: str, student_id: str,
+                          current_user: dict = Depends(require_role(["admin", "teacher"]))):
+    doc = classes_collection.find_one({"_id": ObjectId(class_id)})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+
+    if current_user["role"] == "teacher" and doc.get("teacher_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Bạn không phải giáo viên của lớp này")
+
+    approved = doc.get("approved_students", [])
+    if student_id in approved:
+        approved.remove(student_id)
+        classes_collection.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$set": {"approved_students": approved}}
+        )
+
+    # Note: we are not deleting the enrollment automatically here in case they enroll elsewhere
+    return {"message": "Đã xóa sinh viên khỏi lớp"}
+
+
 @router.delete("/{class_id}")
 async def delete_class(class_id: str, current_user: dict = Depends(require_role(["admin"]))):
-    result = classes_collection.delete_one({"_id": ObjectId(class_id)})
-    if result.deleted_count == 0:
+    doc = classes_collection.find_one({"_id": ObjectId(class_id)})
+    if not doc:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
-    return {"message": "Đã xóa lớp học"}
+
+    # Xóa tất cả điểm liên quan đến lớp này
+    grades_collection.delete_many({"class_id": class_id})
+
+    # Xóa tất cả yêu cầu phúc khảo liên quan đến lớp này
+    reviews_collection.delete_many({"class_id": class_id})
+
+    # Xóa tất cả enrollment liên quan
+    subject_id = doc.get("subject_id")
+    semester_id = doc.get("semester_id")
+    for student_id in doc.get("approved_students", []):
+        enrollments_collection.delete_many({
+            "student_id": student_id,
+            "subject_id": subject_id,
+            "semester_id": semester_id,
+        })
+
+    # Cuối cùng xóa lớp
+    classes_collection.delete_one({"_id": ObjectId(class_id)})
+    return {"message": "Đã xóa lớp học và toàn bộ dữ liệu liên quan"}

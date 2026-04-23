@@ -64,10 +64,11 @@ const TeacherClasses = () => {
 
   const handleRemoveStudent = async (studentId) => {
     if (!confirm('Xóa sinh viên khỏi lớp?')) return;
-    const updated = (classDetail.approved_students || []).filter(id => id !== studentId);
-    await api.put(`/classes/${selectedClass}`, { approved_students: updated });
-    fetchClassDetail(selectedClass);
-    fetchData();
+    try {
+      await api.delete(`/classes/${selectedClass}/remove-student/${studentId}`);
+      fetchClassDetail(selectedClass);
+      fetchData();
+    } catch (err) { alert(err.response?.data?.detail || 'Lỗi'); }
   };
 
   const handleSaveClassInfo = async () => {

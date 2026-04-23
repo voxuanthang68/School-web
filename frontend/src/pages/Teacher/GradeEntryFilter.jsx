@@ -14,11 +14,13 @@ const TeacherGradeEntryFilter = () => {
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [reviewConfig, setReviewConfig] = useState(null);
 
   useEffect(() => {
     api.get('/subjects/').then(r => setSubjects(r.data));
     api.get('/semesters/').then(r => setSemesters(r.data));
     api.get('/classes/').then(r => setAllClasses(r.data));
+    api.get('/reviews/config').then(r => setReviewConfig(r.data)).catch(console.error);
   }, []);
 
   // Filter classes by selected subject/semester
@@ -62,6 +64,7 @@ const TeacherGradeEntryFilter = () => {
           final_score_10: existing?.final_score_10,
           letter_grade: existing?.letter_grade,
           is_pass: existing?.is_pass,
+          status: existing?.status || gradesRes.data.status || 'draft',
         };
       });
       setGrades(gradesList);
@@ -105,6 +108,9 @@ const TeacherGradeEntryFilter = () => {
 
   const canEdit = status === 'draft';
 
+  // Find active review period
+  const activePeriod = reviewConfig?.periods?.find(p => p.status === 'open');
+
   return (
     <div>
       <div className="page-header">
@@ -144,57 +150,67 @@ const TeacherGradeEntryFilter = () => {
 
       {loaded ? (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              Trạng thái:{' '}
-              {status === 'draft' && <span className="badge badge-slate">Nháp</span>}
-              {status === 'submitted' && <span className="badge badge-warning">Đã nộp - Chờ duyệt</span>}
-              {status === 'approved' && <span className="badge badge-success">Đã duyệt</span>}
+          {activePeriod ? (
+            <div style={{ backgroundColor: '#0ea5e9', color: '#fff', padding: '16px 24px', marginBottom: '24px', borderRadius: '8px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>Đang mở phúc khảo</h3>
+              <p style={{ fontSize: '13px' }}>Từ {activePeriod.start_date} đến {activePeriod.end_date}. Giáo viên có thể nhập lại điểm cho các yêu cầu phúc khảo hợp lệ.</p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {canEdit && <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Đang lưu...' : '💾 Lưu nháp'}</button>}
-              {canEdit && grades.length > 0 && <button className="btn btn-success" onClick={handleSubmit}>📤 Nộp duyệt</button>}
-            </div>
-          </div>
+          ) : null}
 
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Mã SV</th><th>Họ tên</th>
+                  <th>Sinh viên</th>
+                  <th>Lớp</th>
                   {gradeItems.map(item => <th key={item.name}>{item.name} ({item.weight}%)</th>)}
-                  <th>Điểm cuối</th><th>Chữ</th><th>Kết quả</th>
+                  <th>Trạng thái</th>
+                  <th>Phúc khảo</th>
                 </tr>
               </thead>
               <tbody>
                 {grades.map(g => (
                   <tr key={g.student_id}>
-                    <td>{g.student_code}</td><td>{g.student_name}</td>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{g.student_code}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--slate-500)' }}>{g.student_name}</div>
+                    </td>
+                    <td>{allClasses.find(c => c.id === selectedClass)?.name || '-'}</td>
                     {gradeItems.map(item => (
                       <td key={item.name}>
                         <input
                           type="number"
                           className="grade-input"
                           min="0" max="10" step="0.1"
+                          style={{ backgroundColor: !canEdit ? '#f8fafc' : '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', width: '60px' }}
                           value={g.scores[item.name] ?? ''}
                           onChange={e => handleScoreChange(g.student_id, item.name, e.target.value)}
                           disabled={!canEdit}
                         />
                       </td>
                     ))}
-                    <td style={{ fontWeight: 700 }}>{g.final_score_10 != null ? g.final_score_10 : '-'}</td>
-                    <td><span className="badge badge-primary">{g.letter_grade || '-'}</span></td>
                     <td>
-                      {g.is_pass != null && <span className={`badge ${g.is_pass ? 'badge-success' : 'badge-danger'}`}>{g.is_pass ? 'Đậu' : 'Rớt'}</span>}
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px' }}>
+                         <span style={{ fontWeight: 600, color: '#334155' }}>{g.status === 'approved' ? 'Đã duyệt' : g.status === 'submitted' ? 'Đã nộp' : g.status === 'draft' ? 'Nháp' : g.status === 'N/A' ? 'N/A' : (g.status || '-')}</span>
+                         <span style={{ fontSize: '12px', color: '#64748b' }}>
+                            {g.is_pass != null ? `${g.is_pass ? 'Pass' : 'Fail'} (${g.letter_grade || '-'})` : '- (-)'}
+                         </span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
                     </td>
                   </tr>
                 ))}
                 {grades.length === 0 && (
                   <tr><td colSpan={3 + gradeItems.length} style={{ textAlign: 'center', color: 'var(--slate-400)', padding: '32px' }}>Không có sinh viên trong lớp này hoặc chưa có cấu hình điểm cho môn học này.</td></tr>
                 )}
-              </tbody>
-            </table>
+            </tbody>
+          </table>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', padding: '16px' }}>
+            {canEdit && <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Đang lưu...' : '💾 Lưu nháp'}</button>}
+            {canEdit && grades.length > 0 && <button className="btn btn-success" onClick={handleSubmit}>📤 Nộp duyệt</button>}
           </div>
+        </div>
         </>
       ) : (
         <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--slate-400)' }}>
