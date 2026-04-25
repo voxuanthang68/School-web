@@ -10,12 +10,11 @@ const ClassRegister = () => {
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
-    // Get all open classes
+    // Lấy danh sách lớp từ API
     const allRes = await api.get('/classes/');
+    console.log("Dữ liệu lớp học:", allRes.data);
     setMyClasses(allRes.data);
 
-    // For students we need all available open classes, but the API only returns enrolled ones
-    // We'll show enrolled classes + a separate section for requesting new ones
   };
 
   const handleRequest = async (classId) => {
@@ -51,5 +50,4 @@ const ClassRegister = () => {
     </div>
   );
 };
-
 export default ClassRegister;

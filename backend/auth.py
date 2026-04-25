@@ -11,19 +11,14 @@ from bson import ObjectId
 from database import users_collection
 
 load_dotenv()
-
 SECRET_KEY = os.getenv("SECRET_KEY", "webschool_secret_key_2024")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
-
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
-
-
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -61,12 +56,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
     user["id"] = str(user["_id"])
     return user
-
-
 async def get_current_active_user(current_user: dict = Depends(get_current_user)):
     return current_user
-
-
 def require_role(roles: list):
     async def role_checker(current_user: dict = Depends(get_current_active_user)):
         if current_user.get("role") not in roles:
