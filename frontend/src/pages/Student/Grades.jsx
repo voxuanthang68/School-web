@@ -14,9 +14,13 @@ const StudentGrades = () => {
   useEffect(() => { fetchGrades(); }, [selectedSemester]);
 
   const fetchGrades = async () => {
-    const params = selectedSemester ? `?semester_id=${selectedSemester}` : '';
-    const r = await api.get(`/grades/my${params}`);
-    setGrades(r.data);
+    try {
+      const params = selectedSemester ? `?semester_id=${selectedSemester}` : '';
+      const r = await api.get(`/grades/my${params}`);
+      setGrades(r.data || []); 
+    } catch (err) {
+      console.error("Lỗi khi tải bảng điểm:", err);//Thêm lỡ API trả về rổng
+    }
   };
 
   const statusBadge = (s) => {
