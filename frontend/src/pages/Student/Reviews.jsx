@@ -22,12 +22,6 @@ const StudentReviews = () => {
       alert('Đã gửi yêu cầu phúc khảo!');
     } catch (err) { alert(err.response?.data?.detail || 'Lỗi'); }
   };
-
-  // Get grade_id from grades/my — we need to find grades that have an id
-  // Since /grades/my returns class-level data, we need the grade document id
-  // For now, student reviews use the grade_id from the grades collection
-  // We'll need to adjust - for simplicity let's get the grades with IDs
-
   return (
     <div>
       <div className="page-header">
