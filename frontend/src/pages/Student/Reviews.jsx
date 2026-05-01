@@ -8,7 +8,7 @@ const StudentReviews = () => {
   const [form, setForm] = useState({ grade_id: '', reason: '' });
 
   useEffect(() => {
-    api.get('/reviews/').then(r => setReviews(r.data));
+    api.get('/reviews/').then(r => setReviews(r.data)); //r reponse
     api.get('/grades/my').then(r => setGrades(r.data));
   }, []);
 
@@ -70,7 +70,7 @@ const StudentReviews = () => {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleSubmit}>📤 Gửi</button>
+              <button className="btn btn-primary" onClick={handleSubmit}>Gửi</button>
             </div>
           </div>
         </div>
