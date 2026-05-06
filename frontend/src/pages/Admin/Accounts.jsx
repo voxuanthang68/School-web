@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
+
 const Accounts = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
@@ -95,13 +96,13 @@ const Accounts = () => {
         </table>
 
         <div className="table-pagination">
-          <span>Showing {(page-1)*perPage+1} to {Math.min(page*perPage, filtered.length)} of {filtered.length} entries</span>
+          <span>Showing {(page - 1) * perPage + 1} to {Math.min(page * perPage, filtered.length)} of {filtered.length} entries</span>
           <div className="table-pagination-buttons">
-            <button onClick={() => setPage(Math.max(1, page-1))}>«</button>
-            {Array.from({length: Math.min(totalPages, 7)}, (_, i) => i + 1).map(p => (
+            <button onClick={() => setPage(Math.max(1, page - 1))}>«</button>
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
               <button key={p} className={p === page ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>
             ))}
-            <button onClick={() => setPage(Math.min(totalPages, page+1))}>»</button>
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))}>»</button>
           </div>
         </div>
       </div>
@@ -111,10 +112,10 @@ const Accounts = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>{editUser ? 'Sửa tài khoản' : 'Thêm tài khoản'}</h3></div>
             <div className="modal-body">
-              <div className="form-group"><label>Tên</label><input className="form-control" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
-              <div className="form-group"><label>Email</label><input className="form-control" value={form.email} onChange={e => setForm({...form, email: e.target.value})} /></div>
-              <div className="form-group"><label>Vai trò</label><select className="form-control" value={form.role} onChange={e => setForm({...form, role: e.target.value})}><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="student">Student</option></select></div>
-              {!editUser && <div className="form-group"><label>Mật khẩu</label><input type="password" className="form-control" placeholder="Mặc định: 123456" value={form.password} onChange={e => setForm({...form, password: e.target.value})} /></div>}
+              <div className="form-group"><label>Tên</label><input className="form-control" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="form-group"><label>Email</label><input className="form-control" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
+              <div className="form-group"><label>Vai trò</label><select className="form-control" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}><option value="admin">Admin</option><option value="teacher">Teacher</option><option value="student">Student</option></select></div>
+              {!editUser && <div className="form-group"><label>Mật khẩu</label><input type="password" className="form-control" placeholder="Mặc định: 123456" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></div>}
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Hủy</button>
