@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GraduationCap } from 'lucide-react';
 
@@ -71,8 +71,8 @@ const Login = () => {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--slate-500)' }}>
-          Liên hệ Admin để được cấp tài khoản.
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--slate-500)' }}>
+          Chưa có tài khoản? <Link to="/register" style={{ color: 'var(--primary-600)', fontWeight: 600 }}>Đăng ký</Link>
         </div>
       </div>
     </div>
