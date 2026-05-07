@@ -24,10 +24,13 @@ reviews_collection = db["reviews"]
 review_config_collection = db["review_config"]
 notifications_collection = db["notifications"]
 
-# Create indexes
-users_collection.create_index("email", unique=True)
-subjects_collection.create_index("code", unique=True)
-grade_types_collection.create_index("subject_id")
-teaching_assignments_collection.create_index([("teacher_id", 1), ("subject_id", 1), ("semester_id", 1)], unique=True)
-enrollments_collection.create_index([("student_id", 1), ("subject_id", 1), ("semester_id", 1)], unique=True)
-grades_collection.create_index([("student_id", 1), ("class_id", 1)], unique=True)
+# Create indexes (wrapped in try-except to handle low disk space)
+try:
+    users_collection.create_index("email", unique=True)
+    subjects_collection.create_index("code", unique=True)
+    grade_types_collection.create_index("subject_id")
+    teaching_assignments_collection.create_index([("teacher_id", 1), ("subject_id", 1), ("semester_id", 1)], unique=True)
+    enrollments_collection.create_index([("student_id", 1), ("subject_id", 1), ("semester_id", 1)], unique=True)
+    grades_collection.create_index([("student_id", 1), ("class_id", 1)], unique=True)
+except Exception as e:
+    print(f"Warning: Could not create indexes: {e}")

@@ -47,13 +47,18 @@ export const AuthProvider = ({ children }) => {
     return userRes.data;
   };
 
+  const register = async (userData) => {
+    const res = await api.post('/users/register', userData);
+    return res.data;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
