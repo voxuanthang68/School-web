@@ -39,7 +39,7 @@ const Classes = () => {
   );
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
-
+  // hàm xử lý sự kiện
   const handleSave = async () => {
     try {
       await api.post('/classes/', { ...form, status: 'open' });
@@ -146,11 +146,11 @@ const Classes = () => {
         </table>
 
         <div className="table-pagination">
-          <span>Showing {Math.min((page-1)*perPage+1, filtered.length)} to {Math.min(page*perPage, filtered.length)} of {filtered.length} entries</span>
+          <span>Showing {Math.min((page - 1) * perPage + 1, filtered.length)} to {Math.min(page * perPage, filtered.length)} of {filtered.length} entries</span>
           <div className="table-pagination-buttons">
-            <button onClick={() => setPage(Math.max(1, page-1))}>«</button>
-            {Array.from({length: totalPages}, (_, i) => i+1).map(p => <button key={p} className={p===page?'active':''} onClick={() => setPage(p)}>{p}</button>)}
-            <button onClick={() => setPage(Math.min(totalPages, page+1))}>»</button>
+            <button onClick={() => setPage(Math.max(1, page - 1))}>«</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => <button key={p} className={p === page ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>)}
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))}>»</button>
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@ const Classes = () => {
               <p style={{ color: 'var(--slate-500)', fontSize: '13px' }}>{classDetail.semester_name} ({classDetail.semester_year}) - GV: {classDetail.teacher_name}</p>
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <select className="form-control" style={{ width: '100px' }} value={classDetail.status} onChange={e => setClassDetail({...classDetail, status: e.target.value})}>
+              <select className="form-control" style={{ width: '100px' }} value={classDetail.status} onChange={e => setClassDetail({ ...classDetail, status: e.target.value })}>
                 <option value="open">Mở</option>
                 <option value="closed">Đóng</option>
               </select>
@@ -234,30 +234,30 @@ const Classes = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>Tạo lớp học</h3></div>
             <div className="modal-body">
-              <div className="form-group"><label>Tên lớp</label><input className="form-control" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="VD: CT101-01" /></div>
+              <div className="form-group"><label>Tên lớp</label><input className="form-control" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="VD: CT101-01" /></div>
               <div className="form-group">
                 <label>Môn học</label>
-                <select className="form-control" value={form.subject_id} onChange={e => setForm({...form, subject_id: e.target.value})}>
+                <select className="form-control" value={form.subject_id} onChange={e => setForm({ ...form, subject_id: e.target.value })}>
                   <option value="">-- Chọn --</option>
                   {subjects.map(s => <option key={s.id} value={s.id}>{s.code} - {s.name}</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label>Học kỳ</label>
-                <select className="form-control" value={form.semester_id} onChange={e => setForm({...form, semester_id: e.target.value})}>
+                <select className="form-control" value={form.semester_id} onChange={e => setForm({ ...form, semester_id: e.target.value })}>
                   <option value="">-- Chọn --</option>
                   {semesters.map(s => <option key={s.id} value={s.id}>{s.name} ({s.year})</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label>Giáo viên</label>
-                <select className="form-control" value={form.teacher_id} onChange={e => setForm({...form, teacher_id: e.target.value})}>
+                <select className="form-control" value={form.teacher_id} onChange={e => setForm({ ...form, teacher_id: e.target.value })}>
                   <option value="">-- Chọn --</option>
                   {teachers.map(t => <option key={t.id} value={t.id}>{t.user_code} - {t.name}</option>)}
                 </select>
               </div>
-              <div className="form-group"><label>Phòng</label><input className="form-control" value={form.room} onChange={e => setForm({...form, room: e.target.value})} /></div>
-              <div className="form-group"><label>Lịch học</label><input className="form-control" value={form.schedule} onChange={e => setForm({...form, schedule: e.target.value})} /></div>
+              <div className="form-group"><label>Phòng</label><input className="form-control" value={form.room} onChange={e => setForm({ ...form, room: e.target.value })} /></div>
+              <div className="form-group"><label>Lịch học</label><input className="form-control" value={form.schedule} onChange={e => setForm({ ...form, schedule: e.target.value })} /></div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Hủy</button>
