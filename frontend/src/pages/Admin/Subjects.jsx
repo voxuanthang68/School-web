@@ -9,9 +9,9 @@ const Subjects = () => {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState({ code: '', name: '', credits: 3, department: '', status: 'active' });
-
+  // fronrend lấy dữ liệu từ backend
   useEffect(() => { fetchData(); }, []);
-  const fetchData = async () => { const r = await api.get('/subjects/'); setSubjects(r.data); };
+  const fetchData = async () => { const r = await api.get('/subjects/'); setSubjects(r.data); }; // nhận data và lưu vào biến state
 
   const filtered = subjects.filter(s =>
     s.code.toLowerCase().includes(search.toLowerCase()) || s.name.toLowerCase().includes(search.toLowerCase())
@@ -21,8 +21,8 @@ const Subjects = () => {
 
   const handleSave = async () => {
     try {
-      if (editItem) { await api.put(`/subjects/${editItem.id}`, form); }
-      else { await api.post('/subjects/', form); }
+      if (editItem) { await api.put(`/subjects/${editItem.id}`, form); } // sửa môn học
+      else { await api.post('/subjects/', form); } // thêm môn học
       setShowModal(false); setEditItem(null); setForm({ code: '', name: '', credits: 3, department: '', status: 'active' }); fetchData();
     } catch (err) { alert(err.response?.data?.detail || 'Lỗi'); }
   };
@@ -58,11 +58,11 @@ const Subjects = () => {
           </tbody>
         </table>
         <div className="table-pagination">
-          <span>Showing {(page-1)*perPage+1} to {Math.min(page*perPage, filtered.length)} of {filtered.length} entries</span>
+          <span>Showing {(page - 1) * perPage + 1} to {Math.min(page * perPage, filtered.length)} of {filtered.length} entries</span>
           <div className="table-pagination-buttons">
-            <button onClick={() => setPage(Math.max(1, page-1))}>«</button>
-            {Array.from({length: totalPages}, (_, i) => i+1).map(p => <button key={p} className={p===page?'active':''} onClick={() => setPage(p)}>{p}</button>)}
-            <button onClick={() => setPage(Math.min(totalPages, page+1))}>»</button>
+            <button onClick={() => setPage(Math.max(1, page - 1))}>«</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => <button key={p} className={p === page ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>)}
+            <button onClick={() => setPage(Math.min(totalPages, page + 1))}>»</button>
           </div>
         </div>
       </div>
@@ -72,11 +72,11 @@ const Subjects = () => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>{editItem ? 'Sửa môn học' : 'Thêm môn học'}</h3></div>
             <div className="modal-body">
-              <div className="form-group"><label>Mã môn</label><input className="form-control" value={form.code} onChange={e => setForm({...form, code: e.target.value})} /></div>
-              <div className="form-group"><label>Tên môn</label><input className="form-control" value={form.name} onChange={e => setForm({...form, name: e.target.value})} /></div>
-              <div className="form-group"><label>Tín chỉ</label><input type="number" className="form-control" value={form.credits} onChange={e => setForm({...form, credits: +e.target.value})} /></div>
-              <div className="form-group"><label>Khoa</label><input className="form-control" value={form.department} onChange={e => setForm({...form, department: e.target.value})} /></div>
-              <div className="form-group"><label>Trạng thái</label><select className="form-control" value={form.status} onChange={e => setForm({...form, status: e.target.value})}><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+              <div className="form-group"><label>Mã môn</label><input className="form-control" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} /></div>
+              <div className="form-group"><label>Tên môn</label><input className="form-control" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+              <div className="form-group"><label>Tín chỉ</label><input type="number" className="form-control" value={form.credits} onChange={e => setForm({ ...form, credits: +e.target.value })} /></div>
+              <div className="form-group"><label>Khoa</label><input className="form-control" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} /></div>
+              <div className="form-group"><label>Trạng thái</label><select className="form-control" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>Hủy</button>

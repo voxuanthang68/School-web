@@ -10,11 +10,11 @@ const Accounts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', role: 'student', password: '' });
-
+  // gọi dữ liệu từ backend
   useEffect(() => { fetchUsers(); }, []);
 
   const fetchUsers = async () => {
-    const res = await api.get('/users/');
+    const res = await api.get('/users/'); // nhận toàn bộ dữ liệu user
     setUsers(res.data);
   };
 
@@ -23,15 +23,15 @@ const Accounts = () => {
     (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
     (u.role || '').toLowerCase().includes(search.toLowerCase())
   );
-
+  // chuyển sang trang tiếp theo khi click
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
   const handleSave = async () => {
     try {
-      if (editUser) {
+      if (editUser) { // sửa 
         await api.put(`/users/${editUser.id}`, form);
-      } else {
+      } else { // thêm
         await api.post('/users/create', { ...form, password: form.password || '123456' });
       }
       setShowModal(false);
@@ -43,13 +43,13 @@ const Accounts = () => {
     }
   };
 
-  const handleEdit = (u) => {
+  const handleEdit = (u) => {  // sửa thông tin tài khoản 
     setEditUser(u);
     setForm({ name: u.name, email: u.email, role: u.role, password: '' });
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id) => { // xoá tài khoản
     if (!confirm('Xác nhận xóa?')) return;
     await api.delete(`/users/${id}`);
     fetchUsers();

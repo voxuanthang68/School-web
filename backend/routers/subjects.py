@@ -35,9 +35,9 @@ async def create_subject(data: dict, current_user: dict = Depends(require_role([
 @router.get("/")
 async def get_subjects(current_user: dict = Depends(get_current_active_user)):
     subjects = []
-    for doc in subjects_collection.find().sort("code", 1):
+    for doc in subjects_collection.find().sort("code", 1): #  lấy toàn bộ dữ liệu 
         subjects.append(serialize(doc))
-    return subjects
+    return subjects 
 
 
 @router.put("/{subject_id}")
